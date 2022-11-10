@@ -29,17 +29,21 @@ ssh-keygen -t rsa -C "your.email@example.com" -b 4096 `
 chmod 600 ~/.ssh/vpn
 ```
 
+### Open Port 8888 for Proxy Server
+
+In **EC2 Management Console** go to **Security Groups** and create a group that allows connections on ports 22 and 8888. Apply this group to proxy instance. Also, it is highly recommended to limit IPs of users by configuring Source settings. Proxies that are left wide open will be discovered by proxy scanners and used by random people. This can result in Amazon charges for network bandwidth.
+
 ## Configuration
 
 ### 1) Modify the config file as you wish _/config.json_
 
 ```json
 {
-  "REGION": "eu-west-1",
+  "REGION": "us-west-1",
   "PROFILE": "terraform-vpn",
 
-  "VPN_INSTANCE_TYPE": "t3.micro",
-  "VPN_AMI": "ami-00035f41c82244dab",
+  "VPN_INSTANCE_TYPE": "t2.micro",
+  "VPN_AMI": "ami-02ea247e531eb3ce6",
   "VPN_SSH_PUBLIC_KEY": "~/.ssh/vpn.pub",
   "VPN_SSH_PRIVATE_KEY": "~/.ssh/vpn",
   "OVPN_PORT": "1194",
@@ -100,18 +104,54 @@ This will download a zip file with client openvpn configuration and keys to your
 cd ansible
 
 # This will also add a client
-ansible-playbook -i inventory openvpn_install.yml -e "username=john" -e "output=/tmp/john_vpn.zip"
+ansible-playbook -i inventory openvpn_install.yml -e "username=alex" -e "output=/tmp/alex_vpn.zip"
 ```
 
-### 4) Add an additional client to the VPN
+#### Error grub-efi-amd64-bin
+`grub-efi-amd64-signed : Depends: grub-efi-amd64-bin (= 2.06-2ubuntu7) but 2.06-2ubuntu10 is to be installed`
+ssh to the server and run
+`apt-get upgrade --with-new-pkgs`
+to fix issue
+`sudo apt --only-upgrade install grub-efi-amd64-signed`
+
+#### Error Unable to restart dnsmasq.service
+to check the state
+`systemctl status dnsmasq.service`
+Error
+`failed to create listening socket for port 53: Address already in use`
+
+```
+sudo systemctl stop systemd-resolved
+sudo systemctl disable systemd-resolved
+sudo systemctl mask systemd-resolved
+To undo what you did:
+
+sudo systemctl unmask systemd-resolved
+sudo systemctl enable systemd-resolved
+sudo systemctl start systemd-resolved
+```
+
+
+### 4a) Add an additional client to the VPN
 
 This will download a zip file with client openvpn configuration and keys to your host.
 
 ```bash
 cd ansible
-ansible-playbook -i inventory openvpn_add_client.yml -e "username=john" -e "output=/tmp/john_vpn.zip"
+ansible-playbook -i inventory proxy_install.yml
 
 ```
+
+### 5) Add an additional client to the VPN
+
+This will download a zip file with client openvpn configuration and keys to your host.
+
+```bash
+cd ansible
+ansible-playbook -i inventory openvpn_add_client.yml -e "username=alex" -e "output=/tmp/alex_vpn.zip"
+
+```
+
 
 ## Reprovision the EC2
 
@@ -128,7 +168,7 @@ terraform apply --var-file ../config.json -auto-approve
 
 # provision again with ansible
 cd ../ansible
-ansible-playbook -i inventory openvpn_install.yml -e "username=john" -e "output=/Users/brmm/Desktop/john_vpn.zip"
+ansible-playbook -i inventory openvpn_install.yml -e "username=alex" -e "output=/Users/brmm/Desktop/alex_vpn.zip"
 ```
 
 ## DNS Problems:
