@@ -1,0 +1,10 @@
+- name: Install squid proxy server
+  hosts: vpn_public
+  user: ubuntu
+  become_method: sudo
+  connection: ssh
+  gather_facts: true
+
+  roles:
+    - ansible-squid
+

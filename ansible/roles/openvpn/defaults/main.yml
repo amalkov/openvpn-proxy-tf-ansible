@@ -5,10 +5,10 @@ ovpn_push_routes:
 
 ca_dir: /home/ubuntu/ca
 
-ca_key_country: BE
-ca_key_province: BR
-ca_key_city: Brussels
-ca_key_org: MyOrganization
-ca_key_email: your.email@organization.org
-ca_key_org_unit: MyOrganizationalUnit
+ca_key_country: USA
+ca_key_province: CA
+ca_key_city: Richmond
+ca_key_org: AlexMalkov
+ca_key_email: alex.a.malkov+vpn@gmail.com
+ca_key_org_unit: VPN
 ca_key_name: vpn_server
